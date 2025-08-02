@@ -1,0 +1,60 @@
+{
+  "mcpServers": {
+    "aws": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "--env", "FASTMCP_LOG_LEVEL=ERROR",
+        "--env", "AWS_REGION",
+        "--env", "AWS_ACCESS_KEY_ID",
+        "--env", "AWS_SECRET_ACCESS_KEY",
+        "--env", "AWS_SESSION_TOKEN",
+        "--volume", "${AWS_ABSOLUTE_PATH}:/app/.aws:ro",
+        "public.ecr.aws/awslabs-mcp/awslabs/nova-canvas-mcp-server:latest"
+      ]
+    },
+    "terraform": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "--env", "TF_LOG",
+        "--env", "AWS_REGION",
+        "--env", "AWS_ACCESS_KEY_ID",
+        "--env", "AWS_SECRET_ACCESS_KEY",
+        "--env", "AWS_SESSION_TOKEN",
+        "--volume", "${WORKSPACE_ABSOLUTE_PATH}:/workspace:ro",
+        "--workdir", "/workspace",
+        "hashicorp/terraform-mcp-server"
+      ]
+    },
+    "github": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "--env", "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"
+      ]
+    },
+    "filesystem": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "--mount", "type=bind,src=${WORKSPACE_ABSOLUTE_PATH},dst=/projects/workspace",
+        "mcp/filesystem",
+        "/projects"
+      ]
+    },
+    "fetch": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run", "--rm", "-i",
+        "mcp/fetch"
+      ]
+    }
+  }
+}
