@@ -5,7 +5,7 @@ resource "aws_instance" "database" {
   
   vpc_security_group_ids = [aws_security_group.database.id]
   
-  key_name = var.key_pair_name
+  key_name = aws_key_pair.market_practice.key_name
 
   user_data = file("${path.module}/user-data/database.sh")
 

@@ -5,7 +5,7 @@ resource "aws_instance" "bastion" {
   
   vpc_security_group_ids = [aws_security_group.bastion.id]
   
-  key_name = var.key_pair_name
+  key_name = aws_key_pair.market_practice.key_name
 
   user_data = templatefile("${path.module}/user-data/bastion.sh", {
     webapp_private_ip   = aws_instance.webapp.private_ip

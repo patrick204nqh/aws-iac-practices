@@ -31,7 +31,7 @@ resource "aws_instance" "webapp" {
   
   vpc_security_group_ids = [aws_security_group.webapp.id]
   
-  key_name = var.key_pair_name
+  key_name = aws_key_pair.market_practice.key_name
 
   user_data = templatefile("${path.module}/user-data/webapp.sh", {
     services_json = jsonencode(local.services_config)

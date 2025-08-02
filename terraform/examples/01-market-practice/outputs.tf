@@ -23,12 +23,22 @@ output "database_private_ip" {
   value       = aws_instance.database.private_ip
 }
 
+output "private_key_path" {
+  description = "Path to the generated private key file"
+  value       = local_file.private_key.filename
+}
+
+output "key_pair_name" {
+  description = "Name of the generated key pair"
+  value       = aws_key_pair.market_practice.key_name
+}
+
 output "ssh_commands" {
-  description = "SSH commands"
+  description = "SSH commands using generated key"
   value = {
-    bastion = "ssh -i ${var.key_pair_name}.pem ubuntu@${aws_instance.bastion.public_ip}"
-    webapp_via_bastion = "ssh -i ${var.key_pair_name}.pem -J ubuntu@${aws_instance.bastion.public_ip} ubuntu@${aws_instance.webapp.private_ip}"
-    database_via_bastion = "ssh -i ${var.key_pair_name}.pem -J ubuntu@${aws_instance.bastion.public_ip} ubuntu@${aws_instance.database.private_ip}"
+    bastion = "ssh -i ${local_file.private_key.filename} ubuntu@${aws_instance.bastion.public_ip}"
+    webapp_via_bastion = "ssh -i ${local_file.private_key.filename} -J ubuntu@${aws_instance.bastion.public_ip} ubuntu@${aws_instance.webapp.private_ip}"
+    database_via_bastion = "ssh -i ${local_file.private_key.filename} -J ubuntu@${aws_instance.bastion.public_ip} ubuntu@${aws_instance.database.private_ip}"
   }
 }
 
@@ -37,7 +47,3 @@ output "vpc_peering_status" {
   value       = var.enable_vpc_peering ? "Enabled" : "Disabled"
 }
 
-output "total_estimated_cost" {
-  description = "Estimated monthly cost (USD)"
-  value       = "~$35-40/month (mainly NAT Gateway: $32)"
-}

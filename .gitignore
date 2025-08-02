@@ -43,7 +43,6 @@ amplify-gradle-config.json
 amplifytools.xcconfig
 
 # IDE
-.vscode/
 .idea/
 *.swp
 *.swo
@@ -84,6 +83,8 @@ coverage/
 .envrc
 secrets.json
 .mcp.json
+.vscode/mcp.json
+.gemini/settings.json
 
 # Sandbox specific
 sandbox/**/terraform.tfstate*

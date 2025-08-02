@@ -1,90 +1,49 @@
 # 01 - Market Practice
 
-First example in our AWS infrastructure practice series. This creates a multi-VPC architecture with service monitoring.
-
-## What You'll Learn
-
-- 🌐 VPC creation and networking
-- 🔒 Security groups and network ACLs
-- 🌉 VPC peering connections
-- 🖥️ Public/private subnet design
-- 🐳 Container deployment on EC2
-- 🔍 Service monitoring and health checks
-- 🔑 Bastion host patterns
+Multi-VPC architecture with bastion host, web application, and database services demonstrating secure AWS networking patterns.
 
 ## Architecture
 
-- **market-prod VPC (10.0.0.0/16)**
-  - Public subnet: Web application with monitoring
-  - Private subnet: MySQL and Redis databases
-  - NAT Gateway for private subnet internet access
+See [architecture diagram](./docs/architecture.md) for detailed C4 visualization.
 
-- **market-bastion VPC (10.1.0.0/16)**
-  - Public subnet: Bastion host for SSH access
-  - VPC peering with market-prod
+## Features
+- **Multi-VPC Design**: Separate VPCs for production and management
+- **Secure Access**: Bastion host pattern with VPC peering
+- **Network Segmentation**: Public/private subnets with proper routing
+- **Containerized Services**: Docker containers for web app and databases
+- **Monitoring**: Built-in Glances dashboard
+- **State Management**: S3 backend with DynamoDB locking
+- **Auto SSH Keys**: Automatic key pair generation ([learn more](./docs/ssh-keys.md))
+- **Single Region**: All resources in ap-southeast-1 (Singapore)
 
 ## Quick Start
 
-1. **Prerequisites**
-   - AWS CLI configured
-   - Existing EC2 key pair
-   - Your public IP address
+⚠️ **Important**: This example deploys all resources in **ap-southeast-1** (Singapore) region. Make sure your AWS CLI is configured for ap-southeast-1.
 
-2. **Configure**
+1. **Prerequisites**
    ```bash
-   cp terraform.tfvars.example terraform.tfvars
-   # Edit terraform.tfvars with your values
+   # Ensure you're using ap-southeast-1 (Singapore)
+   aws configure get region  # Should show: ap-southeast-1
    ```
+
+2. **Backend Setup** (One-time)
+   
+   See [backend setup guide](./docs/backend-setup.md) for detailed S3 and DynamoDB setup instructions.
 
 3. **Deploy**
    ```bash
+   cp terraform.tfvars.example terraform.tfvars
+   # Edit terraform.tfvars: set your IP address (aws_region is fixed to ap-southeast-1)
+   
    terraform init
-   terraform plan
    terraform apply
    ```
 
-4. **Access Services**
-   - Web App: `http://<webapp_public_ip>`
-   - Glances: `http://<webapp_public_ip>:61208`
-   - SSH via Bastion: Use the commands from terraform output
+4. **Access**
+   - Web App: `http://<webapp_ip>`
+   - SSH: Use commands from `terraform output ssh_commands`
 
-5. **Test Connectivity**
-   ```bash
-   # SSH to bastion
-   ssh -i your-key.pem ubuntu@<bastion_ip>
-   
-   # From bastion, test connections
-   ./test-connections.sh
-   
-   # SSH to other instances
-   ssh webapp
-   ssh database
-   ```
-
-6. **Clean Up** (IMPORTANT!)
+5. **Clean Up**
    ```bash
    terraform destroy
    ```
-
-## Features
-
-- ✅ Multi-VPC architecture
-- ✅ Public/Private subnet design
-- ✅ VPC peering
-- ✅ Bastion host for secure access
-- ✅ Service monitoring with simple-webapp
-- ✅ MySQL and Redis in containers
-- ✅ Automatic service discovery
-
-## Cost Optimization
-
-- Use t3.micro instances (free tier)
-- Destroy resources when not in use
-- Consider removing NAT Gateway to save $32/month
-
-## Security Notes
-
-- Update `my_ip` variable with your current IP
-- Use strong passwords in production
-- Rotate SSH keys regularly
-- Enable VPC Flow Logs for monitoring

@@ -4,10 +4,6 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "key_pair_name" {
-  description = "Name of existing EC2 key pair for SSH access"
-  type        = string
-}
 
 variable "my_ip" {
   description = "Your IP address for SSH access (use format: x.x.x.x/32)"
