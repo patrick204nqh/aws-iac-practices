@@ -74,8 +74,6 @@ sudo apt-get update && sudo apt-get install packer
 
 # Verify installation
 packer version
-
-# Verify AWS CLI
 aws sts get-caller-identity
 ```
 
@@ -123,15 +121,6 @@ aws ec2 describe-images \
     --filters 'Name=name,Values=market-database-*' \
     --query 'Images[*].{ImageId:ImageId,Name:Name,CreationDate:CreationDate,State:State}' \
     --output table
-
-# Test instance launch (optional)
-aws ec2 run-instances \
-    --image-id ami-xxxxxxxxx \
-    --instance-type t3.micro \
-    --key-name your-key-pair \
-    --security-group-ids sg-xxxxxxxxx \
-    --subnet-id subnet-xxxxxxxxx \
-    --tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value=test-database}]'
 ```
 
 ## What's Included in the Custom AMI
@@ -245,119 +234,59 @@ AMIs use timestamp naming: `market-database-20241203145230`
 - **Keep 3 most recent versions** for rollback capability
 - **Cleanup older versions** to control costs
 
-### 3. Automated Cleanup Script
+### 3. Automated Custom AMI Cleanup Script
 
-Create and use this script to manage AMI lifecycle:
+The project includes a script at `scripts/cleanup-custom-amis.sh` to manage custom AMI lifecycle. This script:
 
-```bash
-# Create cleanup script
-cat << 'EOF' > scripts/cleanup-old-amis.sh
-#!/bin/bash
-set -e
+- Keeps the N most recent custom AMIs (default: 3)
+- Safely deletes older custom AMIs and their associated snapshots
+- Uses proper JSON parsing with `jq` for reliability
+- Includes confirmation prompts and error handling
 
-KEEP_COUNT=${1:-3}  # Keep 3 most recent by default
-AMI_PREFIX="market-database"
-
-echo "🔍 Finding AMIs to cleanup (keeping ${KEEP_COUNT} most recent)..."
-
-# Get AMI IDs sorted by creation date (oldest first), excluding the most recent N
-OLD_AMIS=$(aws ec2 describe-images \
-    --owners self \
-    --filters "Name=name,Values=${AMI_PREFIX}-*" \
-    --query "sort_by(Images, &CreationDate)[:-${KEEP_COUNT}].[ImageId,Name,CreationDate]" \
-    --output text)
-
-if [ -z "$OLD_AMIS" ]; then
-    echo "✅ No old AMIs to cleanup"
-    exit 0
-fi
-
-echo "📋 AMIs to remove:"
-echo "$OLD_AMIS" | while IFS=$'\t' read -r ami_id name creation_date; do
-    echo "  - $ami_id ($name) - $creation_date"
-done
-
-echo ""
-read -p "🗑️  Proceed with deletion? (y/N): " confirm
-if [[ $confirm != [yY] ]]; then
-    echo "❌ Cancelled"
-    exit 0
-fi
-
-# Delete AMIs and associated snapshots
-echo "$OLD_AMIS" | while IFS=$'\t' read -r ami_id name creation_date; do
-    echo "🗑️  Removing AMI: $ami_id ($name)"
-    
-    # Get associated snapshots
-    SNAPSHOTS=$(aws ec2 describe-images \
-        --image-ids $ami_id \
-        --query 'Images[0].BlockDeviceMappings[?Ebs.SnapshotId!=null].Ebs.SnapshotId' \
-        --output text)
-    
-    # Deregister AMI
-    aws ec2 deregister-image --image-id $ami_id
-    echo "  ✅ AMI deregistered"
-    
-    # Delete snapshots
-    if [ -n "$SNAPSHOTS" ] && [ "$SNAPSHOTS" != "None" ]; then
-        for snapshot_id in $SNAPSHOTS; do
-            echo "  🗑️  Deleting snapshot: $snapshot_id"
-            aws ec2 delete-snapshot --snapshot-id $snapshot_id
-        done
-    fi
-    
-    echo "  ✅ Snapshots cleaned up"
-done
-
-echo "🎉 Cleanup completed!"
-EOF
-
-chmod +x scripts/cleanup-old-amis.sh
-```
+**Key Features:**
+- Only targets custom AMIs you own (not standard AWS AMIs)
+- Shows which AMIs will be deleted before confirmation
+- Handles snapshot cleanup automatically
+- Provides detailed progress feedback
 
 ### 4. Usage Examples
 
 ```bash
-# List all your custom AMIs
-aws ec2 describe-images \
-    --owners self \
-    --filters 'Name=name,Values=market-database-*' \
-    --query 'Images[*].{ImageId:ImageId,Name:Name,CreationDate:CreationDate,State:State}' \
-    --output table
+# Manual cleanup of custom AMIs (keep 3 most recent)
+./scripts/cleanup-custom-amis.sh 3
 
-# Manual cleanup (keep 3 most recent)
-./scripts/cleanup-old-amis.sh 3
+# Aggressive cleanup (keep only 1 most recent custom AMI)
+./scripts/cleanup-custom-amis.sh 1
 
-# Aggressive cleanup (keep only 1 most recent)
-./scripts/cleanup-old-amis.sh 1
+# List only your custom AMIs
+aws ec2 describe-images --owners self \
+    --filters 'Name=name,Values=market-database-*' 'Name=state,Values=available' \
+    --query 'Images[*].{ImageId:ImageId,Name:Name,CreationDate:CreationDate}' --output table
 
-# Delete specific AMI manually
+# Delete specific custom AMI manually
 aws ec2 deregister-image --image-id ami-xxxxxxxxx
-
-# Find and delete associated snapshots
-aws ec2 describe-snapshots \
-    --owner-ids self \
+aws ec2 describe-snapshots --owner-ids self \
     --filters 'Name=description,Values=*ami-xxxxxxxxx*' \
-    --query 'Snapshots[*].SnapshotId' \
-    --output text | xargs -n1 aws ec2 delete-snapshot --snapshot-id
+    --query 'Snapshots[*].SnapshotId' --output text | \
+    xargs -n1 aws ec2 delete-snapshot --snapshot-id
 ```
 
 ### 5. Cost Monitoring
 
-Track AMI storage costs:
+Track custom AMI storage costs:
 ```bash
-# Calculate total storage cost for your AMIs
+# Calculate total storage cost for your custom AMIs
 aws ec2 describe-images \
     --owners self \
-    --filters 'Name=name,Values=market-database-*' \
+    --filters 'Name=name,Values=market-database-*' 'Name=state,Values=available' \
     --query 'sum(Images[*].BlockDeviceMappings[0].Ebs.VolumeSize)' \
-    --output text | awk '{printf "Total storage: %d GB (~$%.2f/month)\n", $1, $1*0.05}'
+    --output text | awk '{printf "Total custom AMI storage: %d GB (~$%.2f/month)\n", $1, $1*0.05}'
 
-# List storage per AMI
+# List storage per custom AMI
 aws ec2 describe-images \
     --owners self \
-    --filters 'Name=name,Values=market-database-*' \
-    --query 'Images[*].{Name:Name,SizeGB:BlockDeviceMappings[0].Ebs.VolumeSize,MonthlyCost:BlockDeviceMappings[0].Ebs.VolumeSize}' \
+    --filters 'Name=name,Values=market-database-*' 'Name=state,Values=available' \
+    --query 'Images[*].{Name:Name,SizeGB:BlockDeviceMappings[0].Ebs.VolumeSize}' \
     --output table
 ```
 
@@ -443,10 +372,11 @@ sudo docker exec market_redis redis-cli ping
 ./packer/build-ami.sh
 
 # List AMIs
-aws ec2 describe-images --owners self --filters 'Name=name,Values=market-database-*'
+aws ec2 describe-images --owners self --filters 'Name=name,Values=market-database-*' \
+    --query 'Images[*].{ImageId:ImageId,Name:Name,CreationDate:CreationDate}' --output table
 
-# Cleanup old AMIs (keep 3)
-./scripts/cleanup-old-amis.sh 3
+# Cleanup old custom AMIs (keep 3)
+./scripts/cleanup-custom-amis.sh 3
 
 # Calculate storage costs
 aws ec2 describe-images --owners self --filters 'Name=name,Values=market-database-*' \
@@ -461,7 +391,7 @@ terraform/examples/02-market-practice/
 │   ├── database-ami.pkr.hcl       # Packer configuration
 │   └── build-ami.sh               # Build script
 ├── scripts/
-│   └── cleanup-old-amis.sh        # AMI lifecycle management
+│   └── cleanup-custom-amis.sh     # Custom AMI lifecycle management
 ├── user-data/
 │   ├── database.sh                # Standard Ubuntu setup
 │   └── database-custom.sh         # Custom AMI startup
