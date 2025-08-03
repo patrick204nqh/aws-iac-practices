@@ -12,7 +12,7 @@ See [architecture diagram](./docs/architecture.md) for detailed C4 visualization
 - **Network Segmentation**: Public/private subnets with proper routing
 - **Containerized Services**: Docker containers for web app and databases
 - **Monitoring**: Built-in Glances dashboard
-- **State Management**: S3 backend with DynamoDB locking
+- **State Management**: S3 backend
 - **Auto SSH Keys**: Automatic key pair generation ([learn more](./docs/ssh-keys.md))
 - **Single Region**: All resources in ap-southeast-1 (Singapore)
 
@@ -28,11 +28,13 @@ See [architecture diagram](./docs/architecture.md) for detailed C4 visualization
 
 2. **Backend Setup** (One-time)
    
-   See [backend setup guide](./docs/backend-setup.md) for detailed S3 and DynamoDB setup instructions.
+   See [backend setup guide](./docs/backend-setup.md) for detailed S3 setup instructions.
 
 3. **Deploy**
    ```bash
    cp terraform.tfvars.example terraform.tfvars
+   # Get your current IP address
+   curl ifconfig.me
    # Edit terraform.tfvars: set your IP address (aws_region is fixed to ap-southeast-1)
    
    terraform init
