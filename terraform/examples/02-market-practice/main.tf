@@ -26,6 +26,22 @@ data "aws_ami" "ubuntu" {
   }
 }
 
+# Custom AMI with pre-pulled Docker images for database instances
+data "aws_ami" "database_custom" {
+  most_recent = true
+  owners      = ["self"] # Our custom AMI
+
+  filter {
+    name   = "name"
+    values = ["market-database-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
 # Application VPC
 module "app_vpc" {
   source = "./modules/vpc"

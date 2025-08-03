@@ -56,8 +56,17 @@ output "ssh_commands" {
   value = local.current_env.enable_bastion ? {
     # Staging: Secure access via bastion
     bastion = "ssh -i ${local_file.private_key.filename} ubuntu@${module.bastion[0].public_ip}"
-    webapp_via_bastion = "ssh -i ${local_file.private_key.filename} -J ubuntu@${module.bastion[0].public_ip} ubuntu@${module.webapp.private_ip}"
-    database_via_bastion = "ssh -i ${local_file.private_key.filename} -J ubuntu@${module.bastion[0].public_ip} ubuntu@${module.database.private_ip}"
+    
+# SSH Commands (copy without the outer quotes)
+    webapp_via_bastion = <<-EOT
+      ssh -i ${local_file.private_key.filename} -o ProxyCommand="ssh -i ${local_file.private_key.filename} -o StrictHostKeyChecking=no -W %h:%p ubuntu@${module.bastion[0].public_ip}" -o StrictHostKeyChecking=no ubuntu@${module.webapp.private_ip}
+    EOT
+    
+    database_via_bastion = <<-EOT
+      ssh -i ${local_file.private_key.filename} -o ProxyCommand="ssh -i ${local_file.private_key.filename} -o StrictHostKeyChecking=no -W %h:%p ubuntu@${module.bastion[0].public_ip}" -o StrictHostKeyChecking=no ubuntu@${module.database.private_ip}
+    EOT
+    
+    detailed_guide = "See docs/ssh-access.md for complete SSH guide"
     emergency_note = "For emergency direct access, uncomment SSH rules in modules/security/main.tf"
   } : {
     # Production: No bastion access (emergency only)

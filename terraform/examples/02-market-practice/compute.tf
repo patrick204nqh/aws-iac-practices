@@ -52,16 +52,16 @@ module "webapp" {
 module "database" {
   source = "./modules/compute"
 
-  ami_id                 = data.aws_ami.ubuntu.id
+  ami_id                 = local.current_env.database_ami_type == "custom" ? data.aws_ami.database_custom.id : data.aws_ami.ubuntu.id
   instance_type          = local.current_env.instance_sizes.database
   subnet_id              = module.app_vpc.private_subnet_id
   vpc_security_group_ids = [module.app_security.database_security_group_id]
   key_name              = aws_key_pair.market_practice.key_name
   
-  user_data = file("${path.module}/user-data/database.sh")
+  user_data = file("${path.module}/user-data/${local.current_env.database_user_data}")
 
   # Cost-optimized storage for database (Docker containers for MySQL + Redis)
-  root_volume_size = 12  # 12GB for MySQL/Redis Docker images + some data
+  root_volume_size = 16  # 16GB for MySQL/Redis Docker images + some data (minimum 15GB required for custom AMI)
   root_volume_type = "gp3" # gp3 is more cost-effective
 
   instance_name = "${local.name_prefix}-database"
@@ -81,7 +81,10 @@ module "bastion" {
   vpc_security_group_ids = [module.bastion_security[0].bastion_security_group_id]
   key_name              = aws_key_pair.market_practice.key_name
   
-  user_data = file("${path.module}/user-data/bastion.sh")
+  user_data = templatefile("${path.module}/user-data/bastion.sh", {
+    webapp_private_ip   = module.webapp.private_ip
+    database_private_ip = module.database.private_ip
+  })
 
   # Cost-optimized storage for bastion (smaller volume since it's just a jump box)
   root_volume_size = 8   # 8GB instead of default 20GB

@@ -70,8 +70,26 @@ See [architecture diagram](./docs/architecture.md) for detailed C4 visualization
    ```
 
 3. **Access**
-   - Web App: `http://<webapp_ip>`
-   - SSH: Use commands from `terraform output ssh_commands`
+   
+   **SSH Access:**
+   ```bash
+   # Get SSH commands from Terraform outputs
+   terraform output ssh_commands
+   
+   # Example: Connect to bastion (copy command from output)
+   ssh -i ./market-practice-key.pem ubuntu@<bastion-ip>
+   
+   # Example: Connect to webapp via bastion (copy command from output) 
+   ssh -i ./market-practice-key.pem -o ProxyCommand="ssh -i ./market-practice-key.pem -o StrictHostKeyChecking=no -W %h:%p ubuntu@<bastion-ip>" -o StrictHostKeyChecking=no ubuntu@<webapp-ip>
+   ```
+   
+   **Web Access:**
+   - Web App: Use `terraform output webapp_url`
+   - Monitoring: Use `terraform output glances_url`
+   
+   **Manual SSH (if needed):**
+   - See commands from `terraform output ssh_commands`
+   - Or check [SSH Access Guide](./docs/ssh-access.md) for detailed instructions
 
 4. **Clean Up**
    ```bash

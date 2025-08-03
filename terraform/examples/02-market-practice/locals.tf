@@ -20,7 +20,9 @@ locals {
       private_subnet     = "10.2.2.0/24"
       enable_bastion     = true   # Staging has bastion for development access
       enable_vpc_peering = true   # Staging allows VPC peering
-      enable_nat_gateway = true  # Staging doesn't need NAT gateway (cost optimization)
+      enable_nat_gateway = false  # Staging doesn't need NAT gateway (cost optimization + custom AMI)
+      database_ami_type  = "custom"  # Use custom AMI for cost optimization
+      database_user_data = "database-custom.sh"
       instance_sizes     = {
         webapp   = "t3.micro"
         database = "t3.micro"
@@ -34,6 +36,8 @@ locals {
       enable_bastion     = false  # Production has no bastion (completely isolated)
       enable_vpc_peering = false  # Production has no VPC peering
       enable_nat_gateway = true   # Production needs NAT gateway for private subnet internet access
+      database_ami_type  = "ubuntu"  # Use standard Ubuntu AMI
+      database_user_data = "database.sh"
       instance_sizes     = {
         webapp   = "t3.small"
         database = "t3.small"
