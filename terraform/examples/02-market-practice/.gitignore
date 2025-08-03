@@ -1,0 +1,17 @@
+# Terraform files
+*.tfstate
+*.tfstate.*
+*.tfvars
+backend.hcl
+
+# SSH keys
+*.pem
+*.key
+
+# Terraform directories
+.terraform/
+.terraform.lock.hcl
+
+# OS files
+.DS_Store
+Thumbs.db
