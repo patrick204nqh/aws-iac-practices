@@ -1,21 +1,6 @@
 # AWS Infrastructure as Code Practices
 
-Practice repository for AWS infrastructure automation with MCP server integration for enhanced Claude Code support.
-
-## 🤖 MCP Servers Setup
-
-This repo uses Model Context Protocol servers for better AI assistance:
-
-1. **Install Claude Code** (if not already installed)
-2. **Configure MCP servers** - Copy `.mcp.json.example` to `.mcp.json` and update with your tokens
-3. **Supported servers**:
-   - `public.ecr.aws/awslabs-mcp/awslabs/nova-canvas-mcp-server:latest` - AWS resource management with AI canvas
-   - `hashicorp/terraform-mcp-server` - Terraform assistance  
-   - `ghcr.io/github/github-mcp-server` - GitHub integration
-   - `mcp/filesystem` - File operations
-   - `mcp/fetch` - Web content fetching
-
-See [docs/mcp-setup.md](docs/mcp-setup.md) for detailed setup.
+Practice repository for AWS infrastructure automation
 
 ## 📂 Repository Organization
 
@@ -138,7 +123,6 @@ See [docs/mcp-setup.md](docs/mcp-setup.md) for detailed setup.
 - [ ] Install direnv (`brew install direnv` or `sudo apt install direnv`)
 - [ ] Set up AWS credentials
 - [ ] Copy `.envrc.example` to `.envrc` and configure
-- [ ] Copy `.mcp.json.example` to `.mcp.json` and configure
 - [ ] Run `direnv allow` to load environment variables
 - [ ] Create AWS Budget alert ($10 limit)
 - [ ] Read `docs/sandbox-guide.md`
@@ -147,6 +131,5 @@ See [docs/mcp-setup.md](docs/mcp-setup.md) for detailed setup.
 
 ## 📚 Documentation
 
-- [MCP Setup Guide](docs/mcp-setup.md)
 - [Testing Strategy](docs/testing-strategy.md)
 - [Sandbox Guidelines](docs/sandbox-guide.md)
