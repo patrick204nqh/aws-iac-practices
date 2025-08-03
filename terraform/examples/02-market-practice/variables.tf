@@ -4,32 +4,24 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
+variable "environment" {
+  description = "Environment name (staging, prod)"
+  type        = string
+  default     = "staging"
+  
+  validation {
+    condition     = contains(["staging", "prod"], var.environment)
+    error_message = "Environment must be either 'staging' or 'prod'."
+  }
+}
 
 variable "my_ip" {
   description = "Your IP address for SSH access (use format: x.x.x.x/32)"
   type        = string
 }
 
-variable "webapp_instance_type" {
-  description = "Instance type for webapp server"
-  type        = string
-  default     = "t3.micro"
-}
-
-variable "database_instance_type" {
-  description = "Instance type for database server"
-  type        = string
-  default     = "t3.micro"
-}
-
-variable "bastion_instance_type" {
-  description = "Instance type for bastion server"
-  type        = string
-  default     = "t3.micro"
-}
-
 variable "enable_vpc_peering" {
-  description = "Enable VPC peering between market-prod and market-bastion"
+  description = "Enable VPC peering between application and bastion VPCs"
   type        = bool
   default     = true
 }

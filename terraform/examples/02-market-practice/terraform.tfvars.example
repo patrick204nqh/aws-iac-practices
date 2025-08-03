@@ -1,13 +1,14 @@
+# Staging/Production Environment Configuration
 # Fixed region for this example
 aws_region = "ap-southeast-1"
 
+# Environment
+environment = "staging"
+
 # Your public IP for SSH access
+# Get current IP: curl ifconfig.me
 my_ip = "YOUR.IP.ADDRESS.HERE/32"
 
-# Instance types (t3.micro is free tier eligible)
-webapp_instance_type   = "t3.micro"
-database_instance_type = "t3.micro"
-bastion_instance_type  = "t3.micro"
-
-# Enable VPC peering
-enable_vpc_peering = true
+# Instance types and VPC peering are automatically configured per environment in locals.tf
+# Staging: Has bastion host and VPC peering for development access
+# Production: No bastion host, no VPC peering - completely isolated for security

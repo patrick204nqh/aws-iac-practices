@@ -1,8 +1,8 @@
 # Security Group for Web App
 resource "aws_security_group" "webapp" {
-  name        = "market-webapp-sg"
+  name        = "${var.name_prefix}-webapp-sg"
   description = "Security group for web application server"
-  vpc_id      = aws_vpc.market_prod.id
+  vpc_id      = var.vpc_id
 
   ingress {
     description = "HTTP from anywhere"
@@ -20,13 +20,26 @@ resource "aws_security_group" "webapp" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ingress {
-    description = "SSH from bastion"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = var.enable_vpc_peering ? [aws_vpc.market_bastion.cidr_block] : [var.my_ip]
+  # SSH access via bastion (when bastion exists)
+  dynamic "ingress" {
+    for_each = var.bastion_vpc_cidr != "" ? [1] : []
+    content {
+      description = "SSH access via bastion"
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = [var.bastion_vpc_cidr]
+    }
   }
+
+  # EMERGENCY: Uncomment the block below for temporary direct SSH access when absolutely needed
+  # ingress {
+  #   description = "EMERGENCY: Direct SSH access (TEMPORARY ONLY)"
+  #   from_port   = 22
+  #   to_port     = 22
+  #   protocol    = "tcp"
+  #   cidr_blocks = [var.my_ip]
+  # }
 
   egress {
     description = "All outbound"
@@ -36,16 +49,16 @@ resource "aws_security_group" "webapp" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
-    Name = "market-webapp-sg"
-  }
+  tags = merge(var.tags, {
+    Name = "${var.name_prefix}-webapp-sg"
+  })
 }
 
 # Security Group for Database
 resource "aws_security_group" "database" {
-  name        = "market-database-sg"
+  name        = "${var.name_prefix}-database-sg"
   description = "Security group for database server"
-  vpc_id      = aws_vpc.market_prod.id
+  vpc_id      = var.vpc_id
 
   ingress {
     description     = "MySQL from webapp"
@@ -63,13 +76,26 @@ resource "aws_security_group" "database" {
     security_groups = [aws_security_group.webapp.id]
   }
 
-  ingress {
-    description = "SSH from bastion"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = var.enable_vpc_peering ? [aws_vpc.market_bastion.cidr_block] : [var.my_ip]
+  # SSH access via bastion (when bastion exists)
+  dynamic "ingress" {
+    for_each = var.bastion_vpc_cidr != "" ? [1] : []
+    content {
+      description = "SSH access via bastion"
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = [var.bastion_vpc_cidr]
+    }
   }
+
+  # EMERGENCY: Uncomment the block below for temporary direct SSH access when absolutely needed
+  # ingress {
+  #   description = "EMERGENCY: Direct SSH access (TEMPORARY ONLY)"
+  #   from_port   = 22
+  #   to_port     = 22
+  #   protocol    = "tcp"
+  #   cidr_blocks = [var.my_ip]
+  # }
 
   egress {
     description = "All outbound"
@@ -79,16 +105,16 @@ resource "aws_security_group" "database" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
-    Name = "market-database-sg"
-  }
+  tags = merge(var.tags, {
+    Name = "${var.name_prefix}-database-sg"
+  })
 }
 
 # Security Group for Bastion
 resource "aws_security_group" "bastion" {
-  name        = "market-bastion-sg"
+  name        = "${var.name_prefix}-bastion-sg"
   description = "Security group for bastion host"
-  vpc_id      = aws_vpc.market_bastion.id
+  vpc_id      = var.vpc_id
 
   ingress {
     description = "SSH from my IP"
@@ -106,7 +132,7 @@ resource "aws_security_group" "bastion" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags = {
-    Name = "market-bastion-sg"
-  }
+  tags = merge(var.tags, {
+    Name = "${var.name_prefix}-bastion-sg"
+  })
 }
