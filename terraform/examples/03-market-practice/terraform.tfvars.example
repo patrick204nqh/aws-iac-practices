@@ -1,0 +1,18 @@
+# Staging/Production Environment Configuration
+# Fixed region for this example
+aws_region = "ap-southeast-1"
+
+# Environment
+environment = "staging"
+
+# Your public IP for SSH access
+# Get current IP: curl ifconfig.me
+my_ip = "YOUR.IP.ADDRESS.HERE/32"
+
+# RDS MySQL database password
+# Use a strong password for the MySQL database
+db_password = "YourSecurePassword123!"
+
+# Instance types and VPC peering are automatically configured per environment in locals.tf
+# Staging: Has bastion host and VPC peering for development access
+# Production: No bastion host, no VPC peering - completely isolated for security
