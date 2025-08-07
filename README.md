@@ -14,6 +14,12 @@ Practice repository for AWS infrastructure automation
 └── 🧰 modules/      # Create reusable components
 ```
 
+### Key Directories
+
+- `requirements/` - Centralized requirements for all examples
+- `docs/` - General documentation and guidelines
+- `scripts/` - Utility scripts for managing resources
+
 ### Where to Practice?
 
 1. **Start Learning** → `examples/`
@@ -133,3 +139,4 @@ Practice repository for AWS infrastructure automation
 
 - [Testing Strategy](docs/testing-strategy.md)
 - [Sandbox Guidelines](docs/sandbox-guide.md)
+- [Requirements](requirements/README.md) - Centralized requirements for all examples
