@@ -1,0 +1,32 @@
+# .gitignore for CDK market practice example
+
+# CDK build output
+cdk.out/
+
+# Dependency directories
+node_modules/
+
+# TypeScript compiled files
+*.js
+*.d.ts
+
+# Exclude compiled JavaScript files in bin and lib directories
+bin/*.js
+bin/*.d.ts
+lib/*.js
+lib/*.d.ts
+
+# Environment-specific files
+cdk.context.json
+.env
+*.pem
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
